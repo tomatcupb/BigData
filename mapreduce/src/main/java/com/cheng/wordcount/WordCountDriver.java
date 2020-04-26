@@ -1,6 +1,7 @@
 package com.cheng.wordcount;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
@@ -9,8 +10,10 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 public class WordCountDriver {
+        static Logger logger = Logger.getLogger("WordCountDriver.class");
     public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
         //1. 获取job对象信息
         Configuration conf = new Configuration();
@@ -33,7 +36,13 @@ public class WordCountDriver {
 
         //6. 设置输入输出路径
         FileInputFormat.setInputPaths(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        Path outDir = new Path(args[1]);
+        FileSystem fs = outDir.getFileSystem(job.getConfiguration());
+        if (fs.exists(outDir)){
+            fs.delete(outDir, true);
+            logger.info("delete the outdir!");
+        }
+        FileOutputFormat.setOutputPath(job, outDir);
 
         //7. 提交
         boolean result = job.waitForCompletion(true);
