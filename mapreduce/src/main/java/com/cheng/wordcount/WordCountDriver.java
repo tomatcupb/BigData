@@ -44,6 +44,9 @@ public class WordCountDriver {
         }
         FileOutputFormat.setOutputPath(job, outDir);
 
+        //7.设置combiner
+        job.setCombinerClass(WordCountCombiner.class);
+
         //7. 提交
         boolean result = job.waitForCompletion(true);
         System.exit(result?0:1);
