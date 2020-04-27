@@ -62,5 +62,28 @@
     CombineTextInputFormat.setMinInputSplitSize(job, 2097152);// 2m
     举例：0.5m+1m+0.3m+5m=2m + 4.8m=2m + 4m + 0.8m
     ```
+
+1. partition分区
+    - 默认partition分区：key的hashCode对reduceTasks个数取模
+    ```
+    public int getPartition(K key, V value, int numReduceTasks) {
+        return (key.hashCode() & Integer.MAX_VALUE) % numReduceTasks;
+      }
+
+    ```
+    - reduceTask的数量> getPartition的结果数，则会多产生几个空的输出文件part-r-000xx
+    - 1<reduceTask的数量<getPartition的结果数，则有一部分分区数据无处安放，会Exception：java.io.IOException: Illegal partition for 13726230503 (3)
+    - reduceTask的数量=1，则不管mapTask端输出多少个分区文件，最终结果都交给这一个reduceTask，最终也就只会产生一个结果文件 part-r-00000
     
-         
+1. 排序WritableComparable
+    - Map Task和Reduce Task均会对数据按照key（这里的key是maptask输出的key）进行排序。
+    - ring buffer的sort应该是快排，小文件合成大文件应该是归并
+    - 自定义类需集成WritableComparable，重写compareTo()才可以作为key排序
+
+1. 排序WritableComparator
+    - GroupingComparator，reduce端的比较key的方法
+    - 重写compare(WritableComparable a, WritableComparable b)，再加上无参构造调用父类有参构造
+
+1. shuffle
+    - ring buffer默认大小为100Mb，阈值为80%，可以调整。
+    - ![shuffle简图](shuffle简图.png)      
