@@ -16,7 +16,6 @@ public class FlowReducer extends Reducer<Text, FlowBean, Text, FlowBean> {
             sumDown += value.getDownFlow();
         }
         valOut.set(sumUp,sumDown);
-        System.out.println(valOut);
         context.write(key, valOut);
     }
 }
