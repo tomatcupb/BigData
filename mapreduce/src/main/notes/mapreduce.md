@@ -86,4 +86,37 @@
 
 1. shuffle
     - ring buffer默认大小为100Mb，阈值为80%，可以调整。
-    - ![shuffle简图](shuffle简图.png)      
+    - ![shuffle简图](shuffle简图.png)
+
+1. Join
+    - 在reduce端的join效率低下，一张大表（动态的），一张小表（固定的映射），可以考虑利用distributedCache在map进行join
+    - map端的join，集群运行时，计算节点将把缓存文件下载到linux本地，在本地读取数据
+    ```
+    //缓存小文件，本地测试路径写法：file:/C：/...，且需要以管理员权限运行idea才可以，否则无法创建小文件的链接
+    job.addCacheFile(new URI("file:/C:/Users/SirAlex/Desktop/cache/pd.txt"));
+
+    //map端join的逻辑不需要reduce阶段，设置reducetask数量为0
+    job.setNumReduceTasks(0);
+    ```
+
+1. 自定义InputFormat类
+    - 目的:读取某个文件时返回的K,V为自定义的封装对象
+    - 步骤
+        1. 自定义class继承FileInputFormat，重写createRecordReader()
+        2. 自定义class继承RecordReader，重写initialize，nextKeyValue等方法
+        3. mapper,reducer类
+        4. driver类中的setInputFormatClass设置
+        
+1. 自定义OutputFormat类
+    - 目的，自定义写出
+    - 步骤
+        1. 自定义class继承FileOutputFormat，重写getRecordWriter()
+        2. 自定义class继承RecordWriter，重写write等方法
+        3. mapper,reducer类
+        4. driver类中的setOutputFormatClass设置
+
+1. 计数器counter的使用
+    ```
+    context.getCounter(String groupName, String counterName)
+    ```
+        
