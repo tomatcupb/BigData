@@ -4,7 +4,7 @@
     - block太大，不适宜计算；太小，占namenode内存(一个block所占用的namenode内存存储空间为一般为150字节)
 1. HDFS元数据
     - 主要包括整个文件系统的目录树、文件名与blockid的映射关系、blockid在哪个datanode上
-    - ![HDFS元数据](src/main/resources/images/HDFS_metadata.png)
+    - ![HDFS元数据](images/HDFS_metadata.png)
 1. HDFS写数据流程
     1. 客户端向namenode请求上传文件，namenode检查目标文件是否已存在，父目录是否存在。
     2. namenode返回是否可以上传。
