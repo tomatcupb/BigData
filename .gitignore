@@ -1,6 +1,9 @@
 *.pyc
 *.iml
 .idea/
+*/.idea/
 *.class
 */target/*
 */target/
+mapreduce/src/main/input/*
+mapreduce/src/main/output/*
