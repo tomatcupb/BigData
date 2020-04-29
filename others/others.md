@@ -24,5 +24,10 @@ log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c %M()
 static Logger logger = Logger.getLogger("WordCountDriver.class");
 logger.info("delete the outdir!");
 ```
-2. IDEA 打jar包
+1. IDEA 打jar包
     - mvn package: 不在 POM 中配置任何插件，直接使用 mvn package 进行项目打包，这对于没有使用外部依赖包的项目是可行的。
+
+1. Git常用命令
+    - git reset --soft HEAD~1：取消最近的一次commit, 不改变源文件
+    - git reset --hard HEAD~1：取消最近的一次commit, 删除源文件的改变
+    - git reflog：查询版本号
