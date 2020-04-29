@@ -117,6 +117,42 @@
 
 1. 计数器counter的使用
     ```
-    context.getCounter(String groupName, String counterName)
+    context.getCounter(String groupName, String counterName).increment(1)
     ```
+    
+1. 数据压缩
+    - 磁盘IO和网络带宽是Hadoop的宝贵资源，数据压缩对于节省资源、最小化磁盘IO和网络传输非常有帮助。
+    - 运算密集型的job，少用压缩；IO密集型的job，多用压缩
+    - 为了支持多种压缩/解压缩算法，Hadoop引入了编码/解码器，如Snappy，gZip
+    ```
+    //开启reduce输出压缩，并设置压缩格式
+    FileOutputFormat.setCompressOutput(job, true);
+    FileOutputFormat.setOutputCompressorClass(job, SnappyCodec.class);
+
+    job.getConfiguration().set(FileOutputFormat.COMPRESS, "true");
+    job.getConfiguration().set(FileOutputFormat.COMPRESS_CODEC, GzipCodec.class.getName());
+
+    conf.set(FileOutputFormat.COMPRESS, "true");
+    conf.set(FileOutputFormat.COMPRESS_CODEC, GzipCodec.class.getName());
+    
+    //设置map输出压缩
+    conf.set(MRJobConfig.MAP_OUTPUT_COMPRESS, "true");
+    conf.set(MRJobConfig.MAP_OUTPUT_COMPRESS_CODEC, SnappyCodec.class.getName());
+    ```
+
+1. 命令行参数传递
+    - -Dname=value 用来给配置参数传值
+    - -D 要放在其他参数的前面，如 -Dmapreduce.job.reduces=10 /tmp/input/word.txt /tmp/output
+    - 如果job.set和-D参数冲突了，job.set 会覆盖掉-D参数设置。以job.set为主
+
+1. mapreducer可以优化的地方
+    - 块的大小和文件的数量这个就决定map任务的数量
+    - 增加map buff缓冲区的大小（mapreduce.task.io.sort.mb）
+    - map输出的KEY的设计均匀（9w 的a, a_序列或a_随机数）
+    - 增加reduce的个数
+    - 增加reduce copy buff缓冲区的大小，增加copy线程的线程数
+    - 减少reduce阶段的数据输入量，在map阶段进行combiner、map输出时进行数据压缩
+
+1. 几个典型的案例
+    - 全局最大值最小值...
         
