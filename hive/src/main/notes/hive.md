@@ -59,33 +59,154 @@
 
 1. 数据类型
     - 基本数据类型
-    - 集合数据类型
-    - 日期与时间戳
+    - 集合数据类型(ARRAY, MAP, STRUCT)
+        - ARRAY和MAP与Java中的Array和Map类似
+        - STRUCT与C语言中的Struct类似，STRUCT也类似于java的类变量使用，struct类型也可以使用点来访问(struct.field_name)
+        ```
+        create table test(
+        name string,
+        friends array<string>,
+        children map<string, int>,
+        address struct<street:string, city:string>
+        ) 
+        row format delimited fields terminated by ','
+        collection items terminated by '_'
+        map keys terminated by ':'
+        lines terminated by '\n';
+        ```
+    - 日期与时间戳(timestamp, date)
 
 1. 各种表
+    - 临时表CREATE TEMPORARY：临时表是session内可见，将数据临时存在scratch目录，session退出后表和数据自动删除。(比如insert 一条数据)
     - 内部表与外部表
-
+        - CREATE TABLE：内部表的特点是删除表时会同时删除表数据
+        - CREATE EXTERNAL TABLE：创建表时指定数据HDFS目录，删除表时不会删除表数据
     - 分区表
         - 动态分区
+        ```sql
+        
+        create table partition_sum(
+        `aid` string COMMENT 'from deserializer', 
+        `pkgname` string COMMENT 'from deserializer', 
+        `uptime` bigint COMMENT 'from deserializer', 
+        `country` string COMMENT 'from deserializer')
+        PARTITIONED BY (gp string COMMENT 'from deserializer')
+        ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t';
+        
+        -- 开启动态分区
+        set hive.exec.dynamic.partition=true;
+        -- 这个属性默认是strict，即限制模式，strict是避免全分区字段是动态的，必须至少一个分区字段是指定有值即静态的且必须放在最前面。
+        -- 设置为nonstrict之后所有的分区都可以是动态的了。
+        set hive.exec.dynamic.partition.mode=nonstrict;
+  
+        --------------------------------备选----------------------------------------
+        --表示每个节点生成动态分区的最大个数，默认是100
+        set hive.exec.max.dynamic.partitions.pernode=10000;  
+        
+        --表示一个DML操作可以创建的最大动态分区数，默认是1000
+        set hive.exec.max.dynamic.partitions=100000;
+        
+        --表示一个DML操作可以创建的最大文件数，默认是100000
+        set hive.exec.max.created.files=150000
+  
+        
+        insert overwrite table partition_sum partition(gp)
+        select * from sum_app_run_limit;
 
+        ```
     - AVRO表
-
-    - ORC表
+        - 用json类型创建schema，将schema文件放到指定的hdfs目录上面
+        ```
+        CREATE EXTERNAL TABLE IF NOT EXISTS word_avro
+        ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
+        WITH SERDEPROPERTIES ('avro.schema.url'='/user/panniu/hive/config/schema.avsc')
+        STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
+        OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
+        LOCATION '/user/panniu/hive/word_avro';
+        ```
+        - 可以通过修改schema文件新增字段
+            - 如果新增字段，需要给新增字段设置默认值，否则查询会报错。
+    - ORC(Optimized Row Columnar)表, 即优化了的RCFile
+        - 优点是：1.在文件中存储了一些轻量级的索引数据。2.数据压缩。
+        - orc表的散列字段查询，可以不执行mapreduce
+        - orc文件小数据量不走mapreduce，大数据量也会走mapreduce。
 
     - Bucket（桶）表
+        - hive桶表最大限度的保证了每个桶中的文件中的数据量大致相同，不会造成数据倾斜。
+        - whichBucket = hash(columnValue) % numberOfBuckets
+        - 桶表抽样
+        ```sql
+        -- 没num2个桶抽一个样，标号从num1开始
+        select * from buckets_table tablesample(bucket num1 out of num2 on country)
+        ```
 
 1. 视图操作
+    - 视图只能查询，不能Load/Insert/Update/Delete数据； alter view 和重建效果一致。
+    - 图在创建时候，只是保存了一份元数据，在hdfs中没有体现，当查询视图的时候，才开始执行视图对应的那些子查询，如果子查询比较简单，不会生成MapReduce任务；
+    - 视图列和类型可以不指定，如果不指定则有select集合列名和类型决定。
 
 1. 数据加载
     - load加载数据
+    ```sql
+    --load数据加载语法格式
+    LOAD DATA [LOCAL] INPATH 'filepath' [OVERWRITE] INTO TABLE tablename [PARTITION (partcol1=val1, partcol2=val2 ...)]
+    ```
     - select加载
+    ```sql
+    --通过select，将select数据覆盖表或分区的语法格式
+    INSERT OVERWRITE TABLE tablename1 [PARTITION (partcol1=val1, partcol2=val2 ...) [IF NOT EXISTS]] select_statement1 FROM from_statement;
+    
+    --通过select，将select数据追加到表或分区的语法格式
+    INSERT INTO TABLE tablename1 [PARTITION (partcol1=val1, partcol2=val2 ...)] select_statement1 FROM from_statement;
+    ```
 
 1. 数据导出
     - 将数据写入一个文件
+    ```sql
+    --语法格式
+    INSERT OVERWRITE [LOCAL] DIRECTORY directory1
+      [ROW FORMAT row_format] [STORED AS file_format] 
+      SELECT ... FROM ...
+    ```
     - 将数据写入多个文件
+    ```sql
+    --语法格式
+    FROM from_statement
+    INSERT OVERWRITE [LOCAL] DIRECTORY directory1 row_format
+    select_statement1 where 
+    [INSERT OVERWRITE [LOCAL] DIRECTORY directory2 row_format
+    select_statement2 where ] ...
+    row_format
+      : DELIMITED [FIELDS TERMINATED BY char [ESCAPED BY char]] [COLLECTION ITEMS TERMINATED BY char]
+            [MAP KEYS TERMINATED BY char] [LINES TERMINATED BY char]
+            [NULL DEFINED AS char]
+     
+    ```
+        - 导出到文件系统的数据都序列化成text，非原始类型字段会序列化成json，导出文件以^A分隔 \n结尾的文本数据。
+        - INSERT OVERWRITE 到HDFS目录，可以通过MR job实现并行写入。这样在集群上抽取数据不仅速度快，而且还很方便。
+        - 批量导出多个文件，需要导出文件的类型一致，如果一个是avro，一个是text，报错。
     -  hive -e 命令 导出
+    ```
+    -- 导出数据
+    hive -e "select word,num from  class11.ext_task where taskname='wordcount04' ;" > ./output_txt4
+    hive -e "use class11;select word,num from  ext_task where taskname='wordcount04' ;" > ./output_txt4
+    nohup hive -e "select word,num from  class11.ext_task where taskname='wordcount04' ;" 1> ./output_txt5 2>./err.log &
+    nohup hive -e "select word,num from  class11.ext_task where taskname='wordcount04' ;" 1> ./output_txt6 2>/dev/null &
+    ```
 
 1. HQL语法
+    - SELECT
+    - JOIN
+        - 写包含join操作的查询语句：将条目少的表/子查询放在join的左边，可以有效减少OOM的几率。原因是在join操作的reduce阶段，join左边的表会被加载进内存。
+        - hive默认是开启MAPJOIN。手动设置的话：左连接右表放内存，右连接左表放内存，否则报错
+    - 要避免的查询操作
+        1. 限制执行可能形成笛卡尔积的SQL；
+        2. partition表使用时不加分区；
+        3. order by全局排序的时候不加limit的情况；
+        
+      
+    - if(表达式, true的结果，false的结果)
+    - 
 
 1. 窗口函数
 

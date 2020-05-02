@@ -64,8 +64,8 @@ insert into table_name(id, name) values (1, "tom");
 CREATE DATABASE/SCHEMA, TABLE, VIEW, FUNCTION, INDEX
 --删除语句
 DROP DATABASE/SCHEMA, TABLE, VIEW, INDEX
---清空语句
-TRUNCATE TABLE
+--清空语句, 外部表不能操作
+TRUNCATE TABLE/PARTITION
 --修改语句
 ALTER DATABASE/SCHEMA, TABLE, VIEW
 --查看创建语句
@@ -73,3 +73,6 @@ SHOW DATABASES/SCHEMAS, TABLES, TBLPROPERTIES, PARTITIONS, FUNCTIONS, INDEX[ES],
 --查看结构语句
 DESCRIBE DATABASE/SCHEMA, table_name, view_name
 ```
+
+insert overwrite directory 'hdfs://ns1/tmp/output.txt' stored as avro
+select aid, pkgname, uptime, country, gp from partition_sum;
