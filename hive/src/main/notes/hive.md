@@ -199,14 +199,22 @@
     - JOIN
         - 写包含join操作的查询语句：将条目少的表/子查询放在join的左边，可以有效减少OOM的几率。原因是在join操作的reduce阶段，join左边的表会被加载进内存。
         - hive默认是开启MAPJOIN。手动设置的话：左连接右表放内存，右连接左表放内存，否则报错
+    - GROUPING SETS
+    - 选择
+        - IF(条件表达式, true的结果, false的结果)
+        - COALESCE( value1,value2,… ), 返回参数中的第一个非空值
+        - case when
+    - 排序
+        - order by，会对输入做全局排序，因此只有一个reducer。
+        - sort by，不是全局排序，其在数据进入reducer前完成排序。sort by只能保证单个文件内有序，如果设置成一个reducer那作用和order是一样的
+        - distribute by,就是把相同的key分到一个reducer中,根据distribute by指定的字段对数据进行划分到不同的输出reduce文件中。即只分key，不排序
+        - CLUSTER BY， cluster by column = distribute by column + sort by column
+    
     - 要避免的查询操作
         1. 限制执行可能形成笛卡尔积的SQL；
         2. partition表使用时不加分区；
         3. order by全局排序的时候不加limit的情况；
-        
-      
-    - if(表达式, true的结果，false的结果)
-    - 
+    
 
 1. 窗口函数
 
