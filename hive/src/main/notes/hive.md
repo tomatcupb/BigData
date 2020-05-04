@@ -215,9 +215,21 @@
         2. partition表使用时不加分区；
         3. order by全局排序的时候不加limit的情况；
     
-
 1. 窗口函数
 
 1. 自定义函数
+    - UDF
+    - UDAF
+    - UDTF
 
 1. hive的数据倾斜场景及处理方式
+    - 表现：任务进度长时间维持在99%（或100%），查看任务监控页面，发现只有少量（1个或几个）reduce子任务未完成。
+    - 参数调节
+        - 开启map端combiner：set hive.map.aggr=true;
+        - 负载均衡设置：set hive.groupby.skewindata=true;
+    - HQL优化
+        - 使用map join让小的维度表先进内存。在map端完成join，不经过reduce。
+        - 非法数据太多，比如null。
+            - 假如null值没有用处的话，可以将null值先过滤掉，再进行union
+            - 把空值的key变成一个字符串加上随机数，把倾斜的数据分到不同的reduce上，由于null值关联不上，处理后并不影响最终结果。
+        - count distinct大量相同特殊值：group by优化
