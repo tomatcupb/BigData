@@ -5,4 +5,4 @@
 - [YARN](./hdfsYarn/src/main/java/com/cheng/hdfs/Yarn.md)
 - [MapReduce](./mapreduce/src/main/notes/mapreduce.md)
 - [Hive](./hive/src/main/notes/hive.md)
-- [HBase](./hbase/src/main/notes/hive.md)
+- [HBase](./hbase/src/main/notes/hbase.md)
