@@ -1,104 +1,19 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <configuration>
-	<!--	Cluster	-->
-	<property>
-		<name>hbase.rootdir</name>
-		<value>hdfs://ns1/hbase</value>
-		<description>region server的共享目录，用来持久化HBase</description>
-	</property>
-
-	<property>
-		<name>hbase.cluster.distributed</name>
-		<value>true</value>
-		<description>HBase的运行模式。false是单机模式，true是分布式模式</description>
-	</property>
-
-	<property>
-		<name>hbase.tmp.dir</name>
-		<value>/data/hbase</value>
-		<description>本地文件系统的临时文件夹。</description>
-	</property>
-	
-	<property>
-		<name>hfile.block.cache.size</name>
-		<value>0.39</value>
-		<description>storefile的读缓存占用Heap的大小百分比，当然是越大越好，如果读比写多，开到0.4-0.5也没问题。如果读写较均衡，0.3左右。如果写比读多，果断默认吧。</description>
-	</property>
-
-	<property>
-		<name>hbase.rpc.timeout</name>
-		<value>900000</value>
-		<description>hbase client中的rpc请求超时时间</description>
-	</property>
 	<!--	Master	-->
 	<property>
 		<name>hbase.master</name>
 		<value>nn1.hadoop:60000</value>
 	</property>
-	
-	<property>
-		<name>hbase.master.info.port</name>
-		<value>60010</value>
-		<description>HBase Master web 界面端口. 设置为-1 意味着你不想让他运行。</description>
-	</property>
-	<!--	regionserver	-->
-	<property>
-		<name>hbase.regionserver.port</name>
-		<value>60020</value>
-		<description>HBase RegionServer绑定的端口</description>
-	</property>
-	
-	<property>
-		<name>hbase.regionserver.info.port</name>
-		<value>60030</value>
-		<description>HBase RegionServer web 界面绑定的端口 设置为 -1 意味这你不想与运行 RegionServer 界面</description>
-	</property>
 
-	<property>
-		<name>hbase.regionserver.lease.period</name>
-		<value>180000</value>
-		<description>客户端租用HRegion server 期限，即超时阀值。单位是毫秒。默认情况下，客户端必须在这个时间内发一条信息，否则视为死掉。</description>
-	</property>
-	
-	<property>
-		<name>hbase.regionserver.restart.on.zk.expire</name>
-		<value>true</value>
-		<description>遇到ZooKeeper session expired（过期）， regionserver将选择 restart 而不是 abort（终止）</description>
-	</property>
-	
-	<property>
-		<name>hbase.regionserver.handler.count</name>
-		<value>100</value>
-		<description>RegionServers处理远程请求的线程数，如果注重TPS（每秒事务数），可以调大，默认10。
-		1）值设得越大，意味着内存开销变大；
-		2）对于提高write的速度，如果瓶颈在做flush、compact、split的速度，磁盘io跟不上，提高线程数，意义不大。</description>
-	</property>
-	
-	<property>
-		<name>hbase.regionserver.codecs</name>
-		<value>snappy,gz</value>
-		<description></description>
-	</property>
-	
-	<property>
-		<name>hbase.hregion.memstore.block.multiplier</name>
-		<value>2</value>
-		<description>regionserver在写入时会检查每个region对应的memstore的总大小是否超过了memstore默认大小的2倍(hbase.hregion.memstore.block.multiplier决定)，如果超过了则锁住memstore不让新写请求进来并触发flush，避免产生OOM。</description>
-	</property>
-	
-	<property>
-		<name>hbase.hregion.max.filesize</name>
-		<value>256000000</value>
-		<description>在当前ReigonServer上单个Reigon的最大存储空间，单个Region超过该值时，这个Region会被自动split成更小的region。</description>
-	</property>
 	<!--	Client参数	-->
 	<property>
 		<name>hbase.client.scanner.caching</name>
 		<value>10000</value>
 		<description>客户端参数，HBase scanner一次从服务端抓取的数据条数</description>
 	</property>
-	
+
 	<property>
 		<name>hbase.client.scanner.timeout.period</name>
 		<value>900000</value>
@@ -109,16 +24,10 @@
 		<name>hbase.zookeeper.quorum</name>
 		<value>nn1.hadoop:2181,nn2.hadoop:2181,s1.hadoop:2181</value>
 	</property>
-	
+
 	<property>
 		<name>zookeeper.session.timeout</name>
 		<value>1200000</value>
 	</property>
-	
-	<property>
-		<name>hbase.zookeeper.property.dataDir</name>
-		<value>/data/zookeeper</value>
-		<description>ZooKeeper的zoo.conf中的配置。 快照的存储位置</description>
-	</property>
-	
+
 </configuration>
