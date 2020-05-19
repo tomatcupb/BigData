@@ -136,7 +136,50 @@
             public void inAge_$eq(int x$1) { this.inAge = x$1; } 
           }
         ```
-    - Bean属性
-        - 为了实现与java的相似性，将属性字段XXX加上注解@BeanProperty可隐式生成getXXX()和setXXX()方法
-        - 与底层原生的XXX(),XXX_$eq()不冲突，可以共存
-    - 对象创建流程分析（待补充）
+- Bean属性
+    - 为了实现与java的相似性，将属性字段XXX加上注解@BeanProperty可隐式生成getXXX()和setXXX()方法
+    - 与底层原生的XXX(),XXX_$eq()不冲突，可以共存
+
+- 对象创建流程分析（待补充）
+
+- 继承
+    - 子类继承了父类的所有属性，只是私有属性无法访问
+    - 不仅像java一样匀速方法的override，还允许字段的override!(因为底层仍然是重写了get，set方法，scala的属性重写看起来也像是动态绑定)
+
+- 静态属性和静态方法
+    - class Person是伴生类，非静态的内容写到这个类里，对象.方法或者对象.属性调用
+    - object Person称为伴生对象，静态的内容写到这个类（对象），类名.方法或者类名.属性调用
+    - class Person编译生成Person.class，object Person编译生成Person$.class
+    
+- 特质
+    - 格式
+        - 有父类：class C extends 父类 with 特质1 with 特质2 with 特质3
+        - 无父类：class C extends 特质1 with 特质2 with 特质3
+        - 防止多继承**类**！(如：trait1 extends class1, trait extends class2, class1和class2没有继承关系!编译不报错，运行异常！)
+    - 特质可以继承类 trait LoggedException extends Exception{} 
+    - 在scala中，java的接口都可以当做trait用
+    - trait可同时含有抽象和具体方法，一个类可继承多个trait
+    - 动态混入：scala特有
+    - 富接口：既有抽象，又有具体方法的特质
+    - 自身类型
+    
+- Scala中创建对象的方式
+    - new
+    - apply
+    - 匿名子类方式
+    - 动态混入
+    
+- 内部类：未细看，参考java内部类
+
+- 隐式转换
+    - 使用隐式函数可以优雅地实现类型转换
+
+- 隐式值（隐式变量）
+    - 编译器会在方法省略隐式参数的情况下搜索作用域内的隐式值作为缺省参数
+    - 编译器的优先级：传值>隐式值>默认值
+    
+- 隐式类
+    - 只有一个构造器
+    - 必须被定义在“类”，“伴生对象”或者“包对象”中，即隐式类不能是顶级的
+    - 隐式类不能是case class
+    - 作用域内不能有同名标识符

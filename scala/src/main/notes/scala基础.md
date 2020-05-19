@@ -79,6 +79,8 @@ object Hello {
  ```
  - “_”的用法
     - var name:String = _（相当于null），var age:Int = _（相当于0）。指定变量类型，系统分配默认值
+    - 通配符，相当于java的*, import scala.collection.mutable._
+    - import java.util.{HashMap=>_,_}，引入java.util下的所有类，除了HashMap
  
 - Java vs Scala
 |Java|Scala|
@@ -95,3 +97,4 @@ object Hello {
 |break, continue|breakable(),循环守卫|
 |懒加载|惰性函数|
 |编译异常+运行异常|运行异常|
+|数组索引中括号|数组索引小括号****|
