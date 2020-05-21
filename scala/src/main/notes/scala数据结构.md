@@ -107,3 +107,47 @@
         println(queue.head)
         println(queue.tail)
         ```
+        
+- Map
+    - 不可变的map有序（构建map的底层元素是Tuple2类型，保持进入map的顺序），可变的map无序
+    - ```scala
+      // 默认是不可变的map scala.collection.immutable.Map
+      val map1 = Map("Tom"->10,"Jerry"->20, "Spike"->30)
+      val map2 = scala.collection.mutable.HashMap("Tom"->10,"Jerry"->20, "Spike"->30)
+      val map3 = Map(("Tom",10),("Jerry",20),("Spike",30))
+      val emptyMap =new scala.collection.mutable.HashMap[String, Int]
+      
+      val value = map1("Tom")//存在的话返回值，不存在抛异常
+      val value2 = map1.get("Tom") // .get()会将数据包装成Option对象后，存在的话返回Some(10),不存在返回None
+      val value3 = map1.get("Tom").get //返回包装的值，即 map.get(key).get <=>map(key)
+      
+      // 增删元素
+      map2("Tuffy")=40 // 等价于,map.put("Tuffy", 40)
+      map2+=("Butch"->50, "Test"->60)
+      map2-=("Butch","Spike")
+      
+      // 遍历
+      for((k,v)<-map2){println(k+":"+v)}
+      for(k<-map2.keys){println(k+":"+map2(k))}
+      for(v<-map2.values){println(v)}
+      for(entry<-map2){println(entry._1+":"+entry._2)} // entry是Tuple2
+      ```
+
+- Set
+    - ```scala
+        import scala.collection.mutable
+        val set = Set(1,2,3)//默认是不可变的
+        val set1 = mutable.Set(1,2,"like")
+        
+        // 增加元素
+        set1.add("test")
+        set1 += 5
+        set1.+=(6)
+        
+        // 删除元素
+        set1.remove(5)
+        set1-=5
+        
+        // 遍历
+        for(i<-set) println(i)
+      ```

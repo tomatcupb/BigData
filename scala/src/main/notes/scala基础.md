@@ -97,4 +97,5 @@ object Hello {
 |break, continue|breakable(),循环守卫|
 |懒加载|惰性函数|
 |编译异常+运行异常|运行异常|
-|数组索引中括号|数组索引小括号****|
+|数组索引中括号|数组索引小括号|
+|map.get(key),不存在返回null|map(key)，不存在抛异常|
