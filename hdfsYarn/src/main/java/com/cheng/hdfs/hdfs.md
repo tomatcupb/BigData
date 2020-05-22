@@ -32,19 +32,11 @@
    - 目前，主流的平台中都支持各种远程调用技术，以满足分布式系统架构中不同的系统之间的远程通信和相互调用。
 1. NameNode & Secondary NameNode工作机制
     - Secondary NameNode的目的是在HDFS中提供一个NameNode检查点。[Secondary NameNode:它究竟有什么作用？](https://blog.csdn.net/jenrey/article/details/80738389)
-1. DataNode 工作机制
-    - datanode之间可以相互传输数据
-    - 一个数据块在datanode上以文件形式存储在磁盘上，包括两个文件：
-        - 一个是数据本身
-        - 一个是元数据包括数据块的**长度**，**块数据的校验和**(checksum，验证数据完整性)，**时间戳**。
-    - DataNode启动后向namenode注册，通过后，周期性（1小时）的向namenode上报所有的块信息。
-    - 心跳是每3秒一次，心跳返回结果带有namenode给该datanode的命令如复制块数据到另一台机器，或删除某个数据块。如果超过10分钟没有收到某个datanode的心跳，则认为该节点不可用。
-    - 集群运行中可以安全加入和退出一些机器
 1. HDFS HA（两个NameNode, Journalnode, ZKFC）
     - **不需要**在HA集群中运行SecondaryNameNode、CheckpointNode或者BackupNode
     - NameNode Active 和 NameNode StandBy
         1. 两个NameNode各自保存一份元数据
-        2. 因为NameNode启动中最费时的工作是处理所有DataNode的blockreport, 为了快速的切换NN,DataNodes上需要同时配置两个Namenode的地址，同时和它们都建立心跳链接，并把block位置发送给它们。
+        2. 因为NameNode启动中最费时的工作是处理所有DataNode的block report, 为了快速的切换NN,DataNodes上需要同时配置两个Namenode的地址，同时和它们都建立心跳链接，并把block位置发送给它们。
     - JournalNode存储、管理两个NameNode共享的edits, 通常也是奇数个
         1. Edits日志只有Active状态的namenode节点可以做写操作
         2. 一条数据只要成功写入多数JournalNode即认为写入成功
@@ -53,3 +45,12 @@
         1. 健康监控。间歇性的ping NameNode，得到NameNode健康状态
         2. Zookeeper会话管理。当本地NaneNode健康，ZKFC将会持有一个Zookeeper session，如果本地NameNode为Active，它同时也持有一个“排他锁”znode。如果session过期，那么次lock所对应的znode也将被删除
         3. 选举。当集群中其中一个NameNode宕机，Zookeeper会自动将另一个激活。
+1. [Hadoop的SecondaryNameNode和HA（高可用）区别](https://blog.csdn.net/andyguan01_2/article/details/88696239?utm_medium=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.nonecase&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.nonecase)
+1. DataNode 工作机制
+    - datanode之间可以相互传输数据
+    - 一个数据块在datanode上以文件形式存储在磁盘上，包括两个文件：
+        - 一个是数据本身
+        - 一个是元数据包括数据块的**长度**，**块数据的校验和**(checksum，验证数据完整性)，**时间戳**。
+    - DataNode启动后向namenode注册，通过后，周期性（1小时）的向namenode上报所有的块信息。
+    - 心跳是每3秒一次，心跳返回结果带有namenode给该datanode的命令如复制块数据到另一台机器，或删除某个数据块。如果超过10分钟没有收到某个datanode的心跳，则认为该节点不可用。
+    - 集群运行中可以安全加入和退出一些机器
