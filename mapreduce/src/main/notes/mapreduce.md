@@ -88,6 +88,14 @@
     - ring buffer默认大小为100Mb，阈值为80%，可以调整。
     - ![shuffle简图](shuffle简图.png)
 
+1. Combiner合并（可以理解成只接收单机数据的Reducer）
+    - combiner是MR程序中Mapper和Reducer之外的一种组件
+    - combiner组件的父类就是Reducer
+    - combiner和reducer的区别在于运行的位置：
+        - Combiner是在每一个maptask所在的节点运行
+        - Reducer是接收全局所有Mapper的输出结果；
+    - combiner的意义就是对每一个maptask的输出进行局部汇总，以减小网络传输量
+
 1. Join
     - 在reduce端的join效率低下，一张大表（动态的），一张小表（固定的映射），可以考虑利用distributedCache在map进行join
     - map端的join，集群运行时，计算节点将把缓存文件下载到linux本地，在本地读取数据
