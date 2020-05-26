@@ -6,3 +6,7 @@
 - [MapReduce](./mapreduce/src/main/notes/mapreduce.md)
 - [Hive](./hive/src/main/notes/hive.md)
 - [HBase](./hbase/src/main/notes/hbase.md)
+- Spark
+	- [Spark Core](./spark/src/main/notes/spark_core.md)
+	- [Spark SQL](./spark/src/main/notes/spark_sql.md)
+	- [Spark Streaming](./spark/src/main/notes/spark_streaming.md)
