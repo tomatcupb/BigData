@@ -10,30 +10,47 @@
     - ![Driver与Executor的代码区分](images/driver_executor.png)
     
 1. RDD
-    - RDD（Resilient Distributed Dataset）叫做分布式数据集，是 Spark 中最基本的数据抽象，
-    它代表一个**不可变**、**可分区**、**里面的元素可并行计算**的集合。
+    - RDD（Resilient Distributed Dataset）叫做弹性分布式数据集，是 Spark 中最基本的数据抽象，
+        它代表一个**不可变**、**可分区**、**里面的元素可并行计算**的集合。
+        - 分布式：数据来源，计算，结果数据存储
+        - 数据集：RDD不存储数据，只存储计算逻辑，只有第一次在一个行动操作中用到时，才会真正根据计算逻辑计算。
+        - RDD的弹性
+            - 计算和存储：计算是基于内存的，性能高。同时可以自动进行内存和磁盘数据存储的切换
+            - 血缘：基于血统的高效容错机制，同时也可以灵活切断血缘关系（checkpoint）
+            - 容错
+                - Task 如果失败会自动进行特定次数的重试（默认次数是 4 次）
+                - Stage 如果失败会自动进行特定次数的重试（默认次数是 4 次）
+                - Checkpoint 和 Persist 可主动或被动触发
+            - 数据
+                - 数据调度弹性
+                - 数据分区的高度弹性，可以根据需要调整分区数量
+                    - coalesce:缩减分区，无shuffle
+                    - repartition<=>coalesce(numPartitions, shuffle = true),可增可减分区，有shuffle
+                
+    - RDD属性
+        - 分区
+        - 计算函数
+        - 依赖（可无）
+        - 分区器（可无）
+        - 优先位置（即移动计算不移动数据。可无，如读取第三方介质，如MySQL）
+        
     - 生成RDD
         - sc.parallelize(Array(1,2,3,4,5,6,7,8),numSlices)
             - numSlices：指定分区数
             - conf.getInt("spark.default.parallelism", math.max(totalCoreCount.get(), 2))
         - sc.textFile("HDFS:/User/...", minPartitions)
             - minPartitions（默认是2）：最小分区数，但是不一定是实际分区数，取决的Hadoop读取文件时的分片规则
-        - 在没有主动改变分区数的前提下，RDD的分区数与其父RDD相等
-    - RDD的弹性
-        - 自动进行内存和磁盘数据存储的切换
-        - 基于血统的高效容错机制
-        - Task 如果失败会自动进行特定次数的重试（默认次数是 4 次）
-        - Stage 如果失败会自动进行特定次数的重试（默认次数是 4 次）
-        - Checkpoint 和 Persist 可主动或被动触发
-        - 数据调度弹性
-        - 数据分片的高度弹性
+            - 不指定minPartitions时，按照Hadoop的分片规则分区，即有几个块就有几个分区
+        - 从其他RDD转换
+            - 在没有主动改变分区数的前提下，RDD的分区数与其父RDD相等（参见源码）
+    
     - RDD的特点
         - 分区
         - 只读
         - 依赖
             - 窄依赖：表现为一个父RDD的分区对应于一个子RDD的分区，或多个父RDD的分区对应于一个子RDD的分区
             - 宽依赖：（除了窄依赖，就是宽依赖）表现为存在父RDD的一个分区对应子RDD的多个分区
-                - 由于有 Shuffle 的存在，只能在父RDD处理完成后，才能开始接下来的计算，因此宽依赖是划分Stage的依据。
+                - 由于有 Shuffle(落盘)的存在，只能在父RDD处理完成后，才能开始接下来的计算，因此宽依赖是划分Stage的依据。
             - 不要混淆transformation/action算子以及宽/窄依赖之间的关系!!
         - DAG
             - 根据宽依赖划分（反过来查看，遇到宽依赖就划分一个stage,因为宽依赖(shuffle)算的慢）
@@ -45,6 +62,7 @@
         - checkpoint
             - 更加安全：将结果持久化到磁盘文件(HDFS)，然后删除持久化rdd之前的血缘关系！
             - 而cache存在缓存失效的问题，因此不会删除持久化rdd之前的血缘关系
+    
     - 分区器
         - HashPartitioner
             - 对于给定的key，计算其hashCode，并除于分区的个数取余，如果余数小于 0，则用余数+分区的个数，最后返回的值就是这个key所属的分区 ID。
@@ -69,7 +87,7 @@
     - Application: 初始化一个SparkContext即生成一个Application
     - Job: 一个Action算子就会生成一个Job
     - Stage: 根据RDD之间依赖关系的不同将Job划分成不同的Stage,遇到一个宽依赖就划分一个Stage
-        - 总的stage数量=1(ResultStage，即整个Job作为1个阶段)+shuffle数量(宽依赖)
+        - 总的stage数量=1(ResultStage，即整个Job作为1个阶段)+shuffle数量(宽依赖，ShuffleMapStage)
     - Task: Stage是一个TaskSet, task的数量对应RDD中的partition数量
     - Application->Job->Stage->Task没一层都是一对多的关系
 
@@ -81,6 +99,11 @@
         - 每个节点可以起一个或多个Executor。
         - 每个Executor由若干core组成，每个Executor的每个core一次只能执行一个Task。
         - 每个Task执行的结果就是生成了目标RDD的一个partiton。
+
+- Task与Executor数量关系
+    - 如果task1,task2所需的数据都在executor1所在的节点，而因为开启的executor数量较多，executor1领到了task1，executor2领到了task2。
+    虽然看起来e1,e2并行，但是考虑到数据网络传输，可能效率不增反减，不如让executor1完成task1后再计算task2。
+    - 考虑到优先位置原则，Task的数量一般是Executor数量的**3-5**倍
 
 - Spark三大数据结构
     - RDD: 分布式数据及
@@ -152,6 +175,7 @@
           override def value: util.ArrayList[String] = list
         }
         ```
+
 - 广播变量
     - ```
         val conf =  new SparkConf().setMaster("local[*]").setAppName("rddDemo")
