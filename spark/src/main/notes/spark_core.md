@@ -62,6 +62,7 @@
         - checkpoint
             - 更加安全：将结果持久化到磁盘文件(HDFS)，然后删除持久化rdd之前的血缘关系！
             - 而cache存在缓存失效的问题，因此不会删除持久化rdd之前的血缘关系
+                - sc.setCheckPointDir(dir); rdd.checkpoint()
     
     - 分区器
         - HashPartitioner
