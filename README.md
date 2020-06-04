@@ -11,3 +11,4 @@
 	- [Spark SQL](./spark/src/main/notes/spark_sql.md)
 	- [Spark Streaming](./spark/src/main/notes/spark_streaming.md)
 - [Kafka](./kafka/src/main/notes/kafka.md)
+- [Redis](./redis/src/main/notes/redis.md)
