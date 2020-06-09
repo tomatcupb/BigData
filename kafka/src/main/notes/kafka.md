@@ -18,8 +18,10 @@
     - Topic ：可以理解为一个队列，消息根据topic来分类
     - Partition：一个topic可以分为多个partition，每个partition是一个有序的队列。提高读写并发，增加吞吐量。
         - 每个partition有leader和副本follower
-        - 一个partition的所有副本（leader+follower）的数量应该小于等于broker的数量，否则报错
-        - 由各个segment组成，超过一定大小(默认1G)，产生新的segment
+            - 一个partition的所有副本（leader+follower）的数量应该小于等于broker的数量，否则报错
+            - 所有的生产与消费请求必须发送给leader
+            - follower的唯一任务就是复制leader的消息以及当leader下线被提升为新的leader
+        - 由各个segment组成，超过一定大小(默认1G)或者时间，产生新的segment
             - 00000000000000000000.index存储每条消息的偏移量
             - 00000000000000000000.log存储数据
             - segment的名字对应了其中的消息最小偏移量
@@ -33,6 +35,11 @@
         - 每个partition的offset从0开始算，但是consumer提交offset后，ZK或者Kafka本地保存的是实际partition的**offset+1**，即下一个消费的数据的offset
         - 0.9版本之前offset存在ZK
         - 0.9版本之后offset存在kafka集群本地的一个topic:__consumer_offsets-parNum
+
+- Broker
+    - 处理请求：元数据请求，生产请求，获取请求
+    - 元数据: topic所含的分区，分区的副本，副本的leader等
+    ![请求处理](./images/request.png)
     
 - Producer
     1. 分区分配策略
@@ -104,6 +111,16 @@
         ![ZK offset 保存](./images/zk_offset.png)  
         - Kafka中offset保存在__consumer_offsets中  
         ![Kafka_offset保存](./images/Kafka_offset.png)
+        
+- 序列化器与反序列化器
+    - Kafka提供了现成的字符串、整型、字节数组序列化器，但是不足以满足大部分场景的需求
+    - 自定义序列化器的缺点
+        - 与生产者和消费者紧紧耦合
+        - 比如为一个Customer类创建了CustomerSerializer，CustomerDeserializer，但是一旦Customer增减属性，则需要新的序列化器与反序列化器。
+        旧消息与新消息的兼容性便成为了问题
+    - Avro序列化框架
+        - 修改schema以应对新旧消息的版本即可
+        - 简单、低耦合
 
 - Kafka 高效读写数据
     - 顺序写磁盘
