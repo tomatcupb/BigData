@@ -12,3 +12,4 @@
 	- [Spark Streaming](./spark/src/main/notes/spark_streaming.md)
 - [Kafka](./kafka/src/main/notes/kafka.md)
 - [Redis](./redis/src/main/notes/redis.md)
+- [Elasticsearch](./elasticsearch/src/main/notes/es.md)
